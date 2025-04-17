@@ -9,7 +9,8 @@ license = {text = "Apache 2.0"}
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "django (==5.1)"
+    "django (==5.1)",
+    "djangorestframework (>=3.15,<4.0)"
 ]
 
 
