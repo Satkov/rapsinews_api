@@ -18,6 +18,11 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10,
+}
+
 INSTALLED_APPS = [
     'api.apps.NewsConfig',
     'django.contrib.admin',
