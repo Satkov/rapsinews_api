@@ -1,130 +1,114 @@
-# Rapsinews API
+# rapsinews API
 
-REST‑сервис для мобильного приложения **RAPSI** (Российское агентство правовой и судебной информации). Позволяет получать, искать и "закреплять" (bookmark) новости.
+A lightweight RESTful service powering the **RAPSI** mobile application. It exposes endpoints for listing, searching and bookmarking news posts.
 
----
-
-## 📋 Содержание
-
-1. [Технологический стек](#-технологический-стек)
-2. [Требования](#-требования)
-3. [Установка](#-установка)
-4. [Запуск приложения](#-запуск-приложения)
-5. [Документация API](#-документация-api)
-6. [Модель данных](#-модель-данных)
-7. [Пагинация](#-пагинация)
-8. [Лицензия](#-лицензия)
+Built with **Django 5.1** and **Django REST Framework 3.15+**.
 
 ---
 
-## 💻 Технологический стек
+## Features
 
-* **Python ≥ 3.12**
-* **Django 5.1**
-* **Django REST Framework 3.15**
-* **SQLite** (по‑умолчанию) / любая СУБД, поддерживаемая Django
-* **Poetry** для управления зависимостями
-* **APScheduler** для фоновых заданий (парсер RSS‑лент)
+* Search posts by title (`/api/v1/search/?query=...`)
+* List all posts ordered by publication date (newest first)
+* Bookmark any set of posts by sending their IDs
+* Limit–offset pagination with `limit` and `offset` parameters (default 10, max 50)
 
-## 📦 Требования
+## Requirements
 
-```toml
-[tool.poetry.dependencies]
-python = ">=3.12"
-django = "==5.1"
-djangorestframework = ">=3.15,<4.0"
-feedparser = ">=6.0.11,<7.0.0"
-python-dateutil = ">=2.9.0.post0,<3.0.0"
-beautifulsoup4 = ">=4.13.4,<5.0.0"
-django-apscheduler = ">=0.7.0,<0.8.0"
-requests = ">=2.32.3,<3.0.0"
+Python ≥ 3.12
+
+```
+django==5.1
+djangorestframework>=3.15,<4.0
+feedparser>=6.0.11,<7.0.0
+python-dateutil>=2.9.0.post0,<3.0.0
+beautifulsoup4>=4.13.4,<5.0.0
+django-apscheduler>=0.7.0,<0.8.0
+requests>=2.32.3,<3.0.0
 ```
 
-Другие зависимости генерируются автоматически в `poetry.lock`.
-
-## ⚙️ Установка
+Install everything with **Poetry**:
 
 ```bash
-# Клонируем репозиторий
-$ git clone https://github.com/your‑org/rapwinews-api.git
-$ cd rapwinews-api
-
-# Устанавливаем Poetry, если ещё не установлен
-$ curl -sSL https://install.python-poetry.org | python3 -
-
-# Устанавливаем зависимости
-$ poetry install
-
-# Активируем виртуальное окружение
-$ poetry shell
-
-# Применяем миграции
-$ python manage.py migrate
-
-# (Опционально) создаём суперпользователя
-$ python manage.py createsuperuser
+poetry install
 ```
 
-## 🚀 Запуск приложения
+## Running the development server
 
 ```bash
-# Разработческий сервер
-$ python manage.py runserver 8000
-# ➜ API будет доступно по http://localhost:8000/api/v1/
+poetry run python manage.py migrate
+poetry run python manage.py runserver
 ```
 
-## 📑 Документация API
+The API will be available at `http://127.0.0.1:8000/api/v1/`.
 
-Базовый префикс: `http://<host>/api/v1/`
+## API Documentation
 
-| Метод    | URL                       | Описание                                          | Тело запроса              | Пример ответа                                                       |
-| -------- | ------------------------- | ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------- |
-| **GET**  | `/posts/`                 | Список всех постов (новые — первые).              | —                         | `{ "count": 123, "next": "?offset=10&limit=10", "results": [...] }` |
-| **POST** | `/bookmarks/`             | Получить произвольный набор постов по их ID.      | `{ "ids": [1, 42, 256] }` | Аналогично `/posts/`                                                |
-| **GET**  | `/search/?query=<строка>` | Поиск постов по заголовку (регистро-независимый). | —                         | Аналогично `/posts/`                                                |
+### 1. List posts
 
-### Примеры
-
-```bash
-# Получить первые 5 постов
-curl "http://localhost:8000/api/v1/posts/?limit=5"
-
-# Поиск по слову "коррупция"
-curl "http://localhost:8000/api/v1/search/?query=коррупция"
-
-# Закладка двух постов
-curl -X POST -H "Content-Type: application/json" \
-     -d '{"ids": [3, 7]}' \
-     http://localhost:8000/api/v1/bookmarks/
+```
+GET /api/v1/posts/?limit=10&offset=0
 ```
 
-## 🗄️ Модель данных
+### 2. Search posts
 
-`Post` (app `api.models`):
+```
+GET /api/v1/search/?query=bankruptcy
+```
 
-| Поле        | Тип                               | Описание              |
-| ----------- | --------------------------------- | --------------------- |
-| `id`        | `AutoField`                       | PK                    |
-| `title`     | `CharField(255)`                  | Заголовок             |
-| `link`      | `URLField(unique)`                | Ссылка на оригинал    |
-| `image`     | `URLField(blank=True, null=True)` | URL изображения       |
-| `category`  | `CharField(255)`                  | Категория/рубрика     |
-| `published` | `DateTimeField`                   | Дата/время публикации |
-| `full_text` | `TextField`                       | Полный текст статьи   |
+### 3. Bookmark posts
 
-## 🔄 Пагинация
+```
+POST /api/v1/bookmarks/
+Content-Type: application/json
 
-Используется `LimitOffsetPagination` с настраиваемыми параметрами:
+{
+  "ids": [1, 42, 99]
+}
+```
 
-* `limit` (по‑умолчанию — **10**, максимум — **50**)
-* `offset` (по‑умолчанию — **0**)
+### Example JSON response
 
-В ответе присутствуют стандартные ключи `count`, `next`, `previous`, `results`.
+```json
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 42,
+      "title": "Supreme Court clarifies insolvency rules",
+      "link": "https://rapsi.org/news/42",
+      "image": "https://rapsi.org/images/42.jpg",
+      "category": "Judicial News",
+      "published": "2025-05-11T08:15:00Z",
+      "full_text": "Full article text..."
+    },
+    {
+      "id": 41,
+      "title": "Constitutional Court decision on tax benefits",
+      "link": "https://rapsi.org/news/41",
+      "image": null,
+      "category": "Constitutional Law",
+      "published": "2025-05-10T14:30:00Z",
+      "full_text": "Full article text..."
+    }
+  ]
+}
+```
 
-## 📝 Лицензия
+## Data model
 
-Код распространяется под лицензией **Apache License 2.0**. Полный текст смотрите в файле [`LICENSE`](LICENSE).
+| Field      | Type           | Description                      |
+| ---------- | -------------- | -------------------------------- |
+| id         | Integer (PK)   | Auto-generated primary key       |
+| title      | CharField(255) | Post title                       |
+| link       | URLField       | Unique link to the original post |
+| image      | URLField       | Optional preview image           |
+| category   | CharField(255) | Human‑readable category          |
+| published  | DateTimeField  | Publication timestamp            |
+| full\_text | TextField      | Complete article text            |
 
----
+## License
 
-> © 2025 Satkov [g.satkov@mail.ru](mailto:g.satkov@mail.ru)
+Distributed under the **Apache License 2.0**. See the `LICENSE` file for full text.
