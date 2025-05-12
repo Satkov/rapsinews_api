@@ -1,9 +1,14 @@
+import json
+
+from django.core.cache import cache
+from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import LimitOffsetPagination
 
+from .cache import key_for, TTL
 from .models import Post
 from .serializers import PostSerializer
 
@@ -16,13 +21,24 @@ class StandardResultsSetPagination(LimitOffsetPagination):
     limit_query_param = "limit"
     offset_query_param = "offset"
 
-
 class PostListAPIView(ListAPIView):
-    """List all posts ordered by publication date (newest first)."""
-
     queryset = Post.objects.all().order_by("-published")
     serializer_class = PostSerializer
     pagination_class = StandardResultsSetPagination
+
+    def list(self, request, *args, **kwargs):
+        cache_key = key_for(request)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(json.loads(cached))
+
+        # обычный CBV‑поток
+        response = super().list(request, *args, **kwargs)
+
+        # сохраняем «готовый» JSON
+        rendered = JSONRenderer().render(response.data).decode()
+        cache.set(cache_key, rendered, TTL)
+        return response
 
 
 class BookmarkPostsAPIView(APIView):
