@@ -2,9 +2,12 @@ from django.core.management.base import BaseCommand
 from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore
 from django.core.management import call_command
-import logging, time
+import logging
+import time
+
 
 logger = logging.getLogger(__name__)
+
 
 def start_scheduler():
     scheduler = BackgroundScheduler()

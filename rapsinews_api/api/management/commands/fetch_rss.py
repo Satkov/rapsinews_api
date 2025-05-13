@@ -8,7 +8,9 @@ import re
 import logging
 from django.db import transaction
 
+
 logger = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
     help = 'Парсит RSS-ленту и сохраняет (или обновляет) записи в БД'
@@ -57,11 +59,12 @@ class Command(BaseCommand):
 
                 existing_post = Post.objects.filter(link=link).first()
                 if existing_post:
-                    if (existing_post.title == entry.get('title') and
-                        existing_post.category == entry.get('category') and
-                        existing_post.published == published and
-                        existing_post.full_text == clean_text):
+                    if (existing_post.title == entry.get('title')
+                        and existing_post.category == entry.get('category')
+                        and existing_post.published == published
+                        and existing_post.full_text == clean_text):
                         continue
+
                     existing_post.title = entry.get('title', 'Без заголовка')
                     existing_post.category = entry.get('category', 'Без категории')
                     existing_post.published = published

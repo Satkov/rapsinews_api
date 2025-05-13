@@ -21,6 +21,7 @@ class StandardResultsSetPagination(LimitOffsetPagination):
     limit_query_param = "limit"
     offset_query_param = "offset"
 
+
 class PostListAPIView(ListAPIView):
     queryset = Post.objects.all().order_by("-published")
     serializer_class = PostSerializer

@@ -6,9 +6,11 @@ from .models import Post
 PREFIX = "post_list:"
 TTL    = 300
 
+
 def key_for(request):
     """Строим ключ из полного URL — limit/offset уже включены."""
     return f"{PREFIX}{request.get_full_path()}"
+
 
 @receiver([post_save, post_delete], sender=Post)
 def invalidate_post_list_cache(**kwargs):

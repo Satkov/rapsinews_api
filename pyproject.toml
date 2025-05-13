@@ -28,4 +28,5 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 redis-tools = "^0.0.2"
+flake8 = "^7.2.0"
 
