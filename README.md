@@ -23,13 +23,7 @@ poetry install
 
 ### Environment Variables Configuration
 
-Create a `.env` file in the root folder with the following content:
-
-```
-POSTGRES_DB=rapwsinews
-POSTGRES_USER=rapwsinews_user
-POSTGRES_PASSWORD=rapwsinews_pass
-```
+Create a `.env` file in the root folder with the context from env_example
 
 ### Running the Application with Docker Compose
 
