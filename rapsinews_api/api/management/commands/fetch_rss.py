@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import html
 import re
 import logging
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,12 @@ class Command(BaseCommand):
         except Exception as e:
             logger.error(f'Ошибка при парсинге RSS: {e}')
             return
+
+        added_count = 0
+        updated_count = 0
+
+        bulk_create = []
+        bulk_update = []
 
         for entry in feed.entries:
             try:
@@ -48,27 +55,43 @@ class Command(BaseCommand):
                     logger.warning(f'Ошибка разбора даты: {e}, используется значение по умолчанию.')
                     published = dateparser.parse('1970-01-01')
 
-                post, created = Post.objects.update_or_create(
-                    link=link,
-                    defaults={
-                        'title': entry.get('title', 'Без заголовка'),
-                        'category': entry.get('category', 'Без категории'),
-                        'published': published,
-                        'full_text': clean_text,
-                        'image': image_url,
-                    }
-                )
-
-                if created:
-                    logger.info(f'Добавлено: {post.title}')
+                existing_post = Post.objects.filter(link=link).first()
+                if existing_post:
+                    if (existing_post.title == entry.get('title') and
+                        existing_post.category == entry.get('category') and
+                        existing_post.published == published and
+                        existing_post.full_text == clean_text):
+                        continue
+                    existing_post.title = entry.get('title', 'Без заголовка')
+                    existing_post.category = entry.get('category', 'Без категории')
+                    existing_post.published = published
+                    existing_post.full_text = clean_text
+                    existing_post.image = image_url
+                    bulk_update.append(existing_post)
+                    updated_count += 1
                 else:
-                    logger.info(f'Обновлено: {post.title}')
+                    bulk_create.append(Post(
+                        link=link,
+                        title=entry.get('title', 'Без заголовка'),
+                        category=entry.get('category', 'Без категории'),
+                        published=published,
+                        full_text=clean_text,
+                        image=image_url,
+                    ))
+                    added_count += 1
 
             except Exception as e:
                 logger.error(f'Ошибка обработки записи: {e}')
 
+        with transaction.atomic():
+            if bulk_create:
+                Post.objects.bulk_create(bulk_create)
+            if bulk_update:
+                Post.objects.bulk_update(bulk_update, ['title', 'category', 'published', 'full_text', 'image'])
+
+        logger.info(f'Обновлено: {updated_count} новостей, Добавлено: {added_count} новостей')
+
     @staticmethod
     def remove_news_prefix(text):
-        # Удаляет префикс "МОСКВА, 17 апр — РАПСИ."
         pattern = r'^МОСКВА,\s\d{1,2}\s[а-я]+\s—\sРАПСИ\.\s*'
         return re.sub(pattern, '', text, flags=re.IGNORECASE)

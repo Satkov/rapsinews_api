@@ -16,7 +16,7 @@ def start_scheduler():
         trigger="interval",
         seconds=300,
         id="fetch_rss_job",
-        name="Парсинг RSS каждые 30 секунд",
+        name="Парсинг RSS каждые 300 секунд",
         replace_existing=True,
     )
 
