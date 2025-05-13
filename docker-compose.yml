@@ -4,7 +4,7 @@ services:
   # ----------- PostgreSQL ---------------------------------------------------
   db:
     image: postgres:16-alpine
-    container_name: rapwsinews_db
+    container_name: rapsinews_db
     restart: unless-stopped
     env_file:               # берём переменные из .env
       - .env
@@ -28,10 +28,10 @@ services:
       - redis-data:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
 
-  # ----------- Django‑приложение -------------------------------------------
+  # ----------- Django -------------------------------------------------------
   web:
     build: .
-    container_name: rapwsinews_web
+    container_name: rapsinews_api
     restart: unless-stopped
     env_file:
       - .env
@@ -39,15 +39,33 @@ services:
       sh -c "
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
-        gunicorn rapwsinews_api.wsgi:application --bind 0.0.0.0:8000
+        gunicorn rapsinews_api.wsgi:application --bind 0.0.0.0:8000
       "
     volumes:
-      - ./:/app               # для live‑кодинга; уберите на prod
+      - ./:/app
     depends_on:
       - db
       - redis
     ports:
       - "8000:8000"           # localhost:8000 → контейнер
+
+services:
+  scheduler:
+    build: .
+    container_name: rapsinews_scheduler
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: >
+      sh -c "
+        python manage.py start_scheduler
+      "
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+      - redis
+
 
 volumes:
   postgres-data:

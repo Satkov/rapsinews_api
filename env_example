@@ -1,1 +1,12 @@
-REDIS_URL=redis://127.0.0.1:6379/1
+DEBUG=True
+SECRET_KEY=your-django-secret
+
+# Postgres
+POSTGRES_DB=rapwsinews
+POSTGRES_USER=rapwsinews_user
+POSTGRES_PASSWORD=rapwsinews_pass
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+
+# Redis
+REDIS_URL=redis://redis:6379/1

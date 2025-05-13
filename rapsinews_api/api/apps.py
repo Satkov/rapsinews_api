@@ -11,5 +11,5 @@ class ApiConfig(AppConfig):
         #    Планировщик запускаем только один раз,
         #    чтобы apscheduler не плодил дублирующих задач при autoreload
         if os.environ.get("RUN_MAIN") == "true":
-            from . import scheduler
-            scheduler.start()
+            from rapsinews_api.api.management.commands import start_scheduler
+            start_scheduler.start()
