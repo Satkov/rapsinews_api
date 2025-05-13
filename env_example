@@ -10,3 +10,13 @@ POSTGRES_PORT=5432
 
 # Redis
 REDIS_URL=redis://redis:6379/1
+
+# Безопасность и ключи
+SECRET_KEY=supersecretkey123
+DEBUG=True
+
+# Настройки домена и безопасности
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Режим работы (например, development, production)
+ENVIRONMENT=development

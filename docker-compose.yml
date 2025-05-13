@@ -28,7 +28,7 @@ services:
       - redis-data:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
 
-  # ----------- Django -------------------------------------------------------
+  # ----------- Django (Web) -------------------------------------------------
   web:
     build: .
     container_name: rapsinews_api
@@ -49,6 +49,7 @@ services:
     ports:
       - "8000:8000"
 
+  # ----------- Scheduler ----------------------------------------------------
   scheduler:
     build: .
     container_name: rapsinews_scheduler
@@ -65,6 +66,25 @@ services:
       - db
       - redis
 
+  # ----------- Nginx --------------------------------------------------------
+  nginx:
+    image: nginx:latest
+    container_name: rapsinews_nginx
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+    volumes:
+      # Монтируем конфигурационный файл
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+
+      # Монтируем статику и медиафайлы
+      - ./rapsinews_api/staticfiles:/app/staticfiles
+      - ./rapsinews_api/media:/app/media
+
+      # Логи Nginx
+      - ./nginx/logs:/var/log/nginx
 
 volumes:
   postgres-data:
