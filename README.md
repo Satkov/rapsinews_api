@@ -1,114 +1,134 @@
-# rapsinews API
+# RAPSI News API
 
-A lightweight RESTful service powering the **RAPSI** mobile application. It exposes endpoints for listing, searching and bookmarking news posts.
+## Project Description
 
-Built with **Django 5.1** and **Django REST Framework 3.15+**.
+RAPSI News API is a backend for a mobile news application that parses RSS pages to provide access to a list of news articles, bookmarks, and search functionality via a REST API. The project is built using Django, with Django Rest Framework for API development, Redis for caching, and PostgreSQL as the database.
 
----
+## Installation and Launch
 
-## Features
-
-* Search posts by title (`/api/v1/search/?query=...`)
-* List all posts ordered by publication date (newest first)
-* Bookmark any set of posts by sending their IDs
-* Limit–offset pagination with `limit` and `offset` parameters (default 10, max 50)
-
-## Requirements
-
-Python ≥ 3.12
+### Cloning the Repository
 
 ```
-django==5.1
-djangorestframework>=3.15,<4.0
-feedparser>=6.0.11,<7.0.0
-python-dateutil>=2.9.0.post0,<3.0.0
-beautifulsoup4>=4.13.4,<5.0.0
-django-apscheduler>=0.7.0,<0.8.0
-requests>=2.32.3,<3.0.0
+git clone <repository>
+cd rapsinews_api
 ```
 
-Install everything with **Poetry**:
+### Installing Dependencies
 
-```bash
+The project uses Poetry:
+
+```
 poetry install
 ```
 
-## Running the development server
+### Environment Variables Configuration
 
-```bash
-poetry run python manage.py migrate
-poetry run python manage.py runserver
-```
-
-The API will be available at `http://127.0.0.1:8000/api/v1/`.
-
-## API Documentation
-
-### 1. List posts
+Create a `.env` file in the root folder with the following content:
 
 ```
-GET /api/v1/posts/?limit=10&offset=0
+POSTGRES_DB=rapwsinews
+POSTGRES_USER=rapwsinews_user
+POSTGRES_PASSWORD=rapwsinews_pass
 ```
 
-### 2. Search posts
+### Running the Application with Docker Compose
 
 ```
-GET /api/v1/search/?query=bankruptcy
+docker-compose up --build
 ```
 
-### 3. Bookmark posts
+The application will be available at:
 
 ```
-POST /api/v1/bookmarks/
-Content-Type: application/json
-
-{
-  "ids": [1, 42, 99]
-}
+http://localhost:8000/
 ```
 
-### Example JSON response
+## API Endpoints
+
+### Get List of Posts
+
+**GET /api/v1/posts/**
+
+Response Example:
 
 ```json
 {
-  "count": 2,
-  "next": null,
+  "count": 100,
+  "next": "http://localhost:8000/api/v1/posts/?limit=10&offset=10",
   "previous": null,
   "results": [
     {
-      "id": 42,
-      "title": "Supreme Court clarifies insolvency rules",
-      "link": "https://rapsi.org/news/42",
-      "image": "https://rapsi.org/images/42.jpg",
-      "category": "Judicial News",
-      "published": "2025-05-11T08:15:00Z",
-      "full_text": "Full article text..."
-    },
-    {
-      "id": 41,
-      "title": "Constitutional Court decision on tax benefits",
-      "link": "https://rapsi.org/news/41",
-      "image": null,
-      "category": "Constitutional Law",
-      "published": "2025-05-10T14:30:00Z",
-      "full_text": "Full article text..."
+      "id": 1,
+      "title": "News 1",
+      "link": "http://example.com",
+      "image": "http://example.com/image.jpg",
+      "category": "Politics",
+      "published": "2025-05-13T12:00:00Z",
+      "full_text": "News text"
     }
   ]
 }
 ```
 
-## Data model
+### Add Posts to Bookmarks
 
-| Field      | Type           | Description                      |
-| ---------- | -------------- | -------------------------------- |
-| id         | Integer (PK)   | Auto-generated primary key       |
-| title      | CharField(255) | Post title                       |
-| link       | URLField       | Unique link to the original post |
-| image      | URLField       | Optional preview image           |
-| category   | CharField(255) | Human‑readable category          |
-| published  | DateTimeField  | Publication timestamp            |
-| full\_text | TextField      | Complete article text            |
+**POST /api/v1/bookmarks/**
+
+Request Body:
+
+```json
+{
+  "ids": [1, 2, 3]
+}
+```
+
+Response Example:
+
+```json
+{
+  "count": 3,
+  "results": [
+    {
+      "id": 1,
+      "title": "News 1",
+      "link": "http://example.com"
+    }
+  ]
+}
+```
+
+### Search for News by Title
+
+**GET /api/v1/search/?query=news**
+
+Response Example:
+
+```json
+{
+  "count": 1,
+  "results": [
+    {
+      "id": 1,
+      "title": "News 1",
+      "link": "http://example.com"
+    }
+  ]
+}
+```
+
+## Dependencies
+
+| Dependency                | Version   |
+| ------------------------- | --------- |
+| Python                    | 3.12      |
+| Django                    | 5.1       |
+| Django Rest Framework     | 3.15      |
+| PostgreSQL                | 16-alpine |
+| Redis                     | 7-alpine  |
+| Docker and Docker Compose | Latest    |
+| Gunicorn                  | 23.0.0    |
+| Poetry                    | 2.0.0+    |
 
 ## License
 
-Distributed under the **Apache License 2.0**. See the `LICENSE` file for full text.
+The project is distributed under the Apache 2.0 license.
