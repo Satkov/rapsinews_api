@@ -1,6 +1,6 @@
 import feedparser
 from django.core.management.base import BaseCommand
-from api.models import Post
+from posts.models import Post
 from dateutil import parser as dateparser
 from bs4 import BeautifulSoup
 import html

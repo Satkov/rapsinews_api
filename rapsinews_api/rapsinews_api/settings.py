@@ -4,7 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(',')
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(',')
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 
 REST_FRAMEWORK = {
@@ -27,7 +27,7 @@ CACHES = {
 
 INSTALLED_APPS = [
     "rapsinews_api",
-    'api.apps.ApiConfig',
+    'posts.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_apscheduler',
+    'banners',
 ]
 
 MIDDLEWARE = [

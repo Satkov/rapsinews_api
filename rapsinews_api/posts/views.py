@@ -33,10 +33,8 @@ class PostListAPIView(ListAPIView):
         if cached is not None:
             return Response(json.loads(cached))
 
-        # обычный CBV‑поток
         response = super().list(request, *args, **kwargs)
 
-        # сохраняем «готовый» JSON
         rendered = JSONRenderer().render(response.data).decode()
         cache.set(cache_key, rendered, TTL)
         return response

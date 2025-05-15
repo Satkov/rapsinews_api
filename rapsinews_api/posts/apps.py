@@ -4,7 +4,7 @@ import os
 
 class ApiConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "api"
+    name = "posts"
 
     def ready(self):
         from . import cache      # noqa: F401
